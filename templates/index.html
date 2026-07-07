@@ -1,17 +1,38 @@
 <!DOCTYPE html>
 <html>
-<head><title>Aviator Signal</title>
+<head><title>Aviator AI Pro</title>
 <style>
-*{font-family:sans-serif;}body{background:#0a0f1e;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;}.container{background:#151e2f;padding:30px;border-radius:20px;width:90%;max-width:500px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.8);}h1{color:#f0b90b;margin-bottom:5px;}input{padding:12px;width:80%;border-radius:10px;border:none;margin:15px 0;background:#0d1421;color:#fff;text-align:center;font-size:16px;}button{background:#f0b90b;padding:12px 30px;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;transition:0.3s;}button:hover{background:#d4a20a;}.result{background:#0d1421;padding:15px;border-radius:10px;margin-top:15px;border-left:5px solid #f0b90b;}.signal{font-size:28px;font-weight:bold;}.exit{color:#f0b90b;font-size:22px;margin:5px 0;}.warning{color:#ff6b6b;font-size:12px;margin-top:15px;border-top:1px solid #2a3a55;padding-top:10px;}
+*{font-family:sans-serif;box-sizing:border-box;}
+body{background:#0a0f1e;color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:20px;}
+.container{background:#151e2f;padding:30px;border-radius:20px;max-width:550px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,0.8);}
+h1{color:#f0b90b;text-align:center;margin-bottom:5px;font-size:28px;}
+.sub{color:#8a9bb5;text-align:center;margin-bottom:20px;font-size:14px;}
+.input-area{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.input-area input{padding:12px 15px;border-radius:10px;border:1px solid #2a3a55;background:#0d1421;color:#fff;font-size:16px;width:100%;}
+.input-area button{padding:12px;background:#f0b90b;color:#0a0f1e;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;transition:0.3s;width:100%;}
+.input-area button:hover{background:#d4a20a;}
+.result-box{background:#0d1421;border-radius:15px;padding:20px;margin-top:15px;border-left:5px solid #f0b90b;}
+.signal{font-size:28px;font-weight:bold;margin:5px 0;}
+.exit{color:#f0b90b;font-size:24px;margin:5px 0;}
+.suggestion{background:#1a2538;padding:10px;border-radius:8px;margin:8px 0;color:#b0c4de;font-size:14px;}
+.stats-grid{display:flex;justify-content:space-between;margin-top:15px;background:#0a0f1e;padding:12px;border-radius:10px;}
+.stats-grid span{color:#8a9bb5;font-size:13px;}
+.stats-grid strong{color:#fff;display:block;font-size:18px;}
+.warning{color:#ff6b6b;font-size:12px;text-align:center;margin-top:15px;border-top:1px solid #2a3a55;padding-top:12px;}
+.bet-btn{background:#1a2538;padding:10px;border-radius:8px;text-align:center;margin-top:10px;border:1px dashed #f0b90b;color:#f0b90b;font-size:14px;}
 </style>
 </head>
 <body>
 <div class="container">
-<h1>✈️ AVIATOR AI</h1>
-<p style="color:#8a9bb5;">Last 5-15 multipliers (comma separated)</p>
+<h1>✈️ AVIATOR AI PRO</h1>
+<p class="sub">Last 5-15 multipliers (comma separated)</p>
+<div class="input-area">
 <input type="text" id="history" value="1.2, 1.8, 2.1, 1.5, 1.9, 2.5, 1.3">
 <button onclick="getSignal()">🚀 Get Signal</button>
-<div class="result" id="result">Enter numbers above and click</div>
+</div>
+<div id="result" class="result-box">
+<div style="color:#8a9bb5;text-align:center;">Enter numbers and click</div>
+</div>
 <div class="warning">⚠️ Educational purpose only. Game is random. Bet responsibly.</div>
 </div>
 <script>
@@ -19,18 +40,36 @@ async function getSignal(){
  const input=document.getElementById('history').value;
  const numbers=input.split(',').map(n=>parseFloat(n.trim())).filter(n=>!isNaN(n));
  if(numbers.length<3){alert('Enter at least 3 numbers!'); return;}
- const res=await fetch('/api/signal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({history:numbers})});
+ 
+ document.getElementById('result').innerHTML='<div style="color:#8a9bb5;">⏳ Analyzing...</div>';
+ 
+ const res=await fetch('/api/signal',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({history:numbers})
+ });
  const data=await res.json();
- if(data.error){document.getElementById('result').innerHTML=`<div style="color:red;">${data.error}</div>`; return;}
- document.getElementById('result').innerHTML=`
+ if(data.error){document.getElementById('result').innerHTML=`<div style="color:#ff6b6b;">${data.error}</div>`; return;}
+ 
+ let html=`
  <div class="signal">${data.action}</div>
- <div class="exit">Exit at: ${data.exit_at}x</div>
- <div style="color:#b0c4de;font-size:14px;">📌 ${data.reason}</div>
- <div style="display:flex;justify-content:space-around;margin-top:12px;background:#0a0f1e;padding:10px;border-radius:8px;">
-   <span>Avg: <strong>${data.stats.avg}x</strong></span>
-   <span>Last: <strong>${data.stats.last}x</strong></span>
-   <span>Rounds: <strong>${data.stats.total}</strong></span>
- </div>`;
+ <div class="exit">🎯 Exit: ${data.exit_at}x</div>
+ <div style="color:#b0c4de;font-size:14px;margin:5px 0;">📌 ${data.reason}</div>
+ <div style="margin-top:10px;">`;
+ 
+ data.suggestions.forEach(s => {
+  html += `<div class="suggestion">${s}</div>`;
+ });
+ 
+ html += `</div>
+ <div class="stats-grid">
+  <div><span>Avg</span><strong>${data.stats.avg}x</strong></div>
+  <div><span>Last</span><strong>${data.stats.last}x</strong></div>
+  <div><span>Rounds</span><strong>${data.stats.total}</strong></div>
+ </div>
+ <div class="bet-btn">💡 Suggested Bet: ${Math.round(100 + Math.random() * 100)} PKR</div>`;
+ 
+ document.getElementById('result').innerHTML=html;
 }
 </script>
 </body>
